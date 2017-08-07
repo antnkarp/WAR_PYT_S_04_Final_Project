@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Find shortest game</title>
+    </head>
+    <body>
+            <form action="#" method="POST">
+                {% csrf_token %}
+                From:<br>
+                <input type="number" min="0" step="1" name="vertex_from"><br>
+                To:<br>
+                <input type="number" min="0" step="1" name="vertex_to"><br>
+                <button type="submit">Find shortest game</button><br><br>
+                <a href="/mode1/edit_add_board/{{ id }}/0"><- Back</a>
+            </form>
+    </body>
+</html>

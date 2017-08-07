@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Snakes & Ladders</title>
+    </head>
+    <body>
+        {% for named_board in named_boards %}
+            Board nr {{ forloop.counter }}<br>
+            {{named_board.description}}<br><br>
+            <a href = "/mode1/view_board/{{ named_board.id }}/?backurl=/mode1/main">View board</a><br>
+            <a href = "/mode1/edit_add_board/{{ named_board.id }}/0">Edit board</a><br>
+            <a href = "/mode1/delete_board/{{ named_board.id }}">Delete board</a><br>
+            <a href = "/mode1/find_shortest_game/{{ named_board.id }}">Find shortest game</a><br>
+            <br><br><br>
+        {% endfor %}
+        <a href = "/mode1/edit_add_board/0/1">Add board</a><br> <!-- first argument is not used -->
+        <a href="/mode1/set_default">Reset boards</a> (Erase and load default)<br>
+        <br><br>
+        <a href="/main"><- Go back</a>
+    </body>
+</html>

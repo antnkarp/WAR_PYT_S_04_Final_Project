@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+{% load templatetags %}
+
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        {% if mode == 0 %}
+            <title>Edit graph</title>
+        {% else %}
+            <title>Add graph</title>
+        {% endif %}
+    </head>
+    <body>
+        <form action="#" method="POST">
+            {% csrf_token %}
+            Size min=1:<br>
+            <input type="number" min="1" step="1" name="size" {% if mode == 0 %} value="{{ graph.size }}" {% endif %}> <br>
+            Description (nonempty):<br>
+            <input type="text" name="description" {% if mode == 0 %} value="{{ description }}" {% endif %}> <br>
+            {% if mode == 0 %}
+                    <button type="submit">Edit</button>
+            {% else %}
+                    <button type="submit">Add</button>
+            {% endif %}
+            <br><br><br>
+        </form>
+        No self-loops allowed.<br><br><br>
+        {% if mode == 0 %}
+            {% for in_vertex in graph.graph|sort %}
+                Vertex {{ in_vertex }}. <a href="/mode2/delete_vertex/{{ id }}/{{ in_vertex }}">Delete vertex</a>
+                <a href="/mode2/edit_add_edge/{{ id }}/{{ in_vertex }}/1/1 ">Add edge</a><br> <!-- second to last argument: 1: add new edge from this vertex -->
+                {% if graph.graph|lookup:in_vertex == empty_list %}
+                    No edges.<br><br>
+                {% else %}
+                    <ul>
+                        {% for out_vertex in graph.graph|lookup:in_vertex %}
+                            <li> Edge nr {{ forloop.counter }}. From {{ in_vertex }} To {{ out_vertex }}
+                                <a href = "/mode2/edit_add_edge/{{ id }}/{{ in_vertex }}/{{ out_vertex }}/0">Edit</a>
+                                <a href = "/mode2/delete_edge/{{ id }}/{{ in_vertex }}/{{ out_vertex }}">Delete</a><br>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                    <br><br>
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+        <a href ="/mode2/add_vertex/{{ id }}/0/1">Add vertex</a><br> <!-- second argument is not used -->
+        <a href ="/mode2/edit_add_edge/{{ id }}/0/0/1">Add edge</a><br><br> <!-- second to last argument: 0: add new edge -->
+        <a href = "/mode2/find_euler_path/{{ id }}">Find Euler path</a><br><br>
+        <a href = "/mode2/main"><- Go back</a>
+    </body>
+</html>

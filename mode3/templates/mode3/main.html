@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+{% load templatetags %}
+    <head>
+        <meta charset="UTF-8">
+        <title>2D Maze</title>
+    </head>
+    <body>
+        <canvas id="show_maze" width="1000" height="1000"></canvas>
+        <script>
+            var canvas = document.getElementById("show_maze");
+            var context = canvas.getContext("2d");
+            context.translate(0, 0); <!-- sharp edges -->
+            {% for rectangle in maze.rectangles %}
+                context.fillRect({{ rectangle|lookup:0 }}, {{ rectangle|lookup:1 }}, {{ rectangle|lookup:2 }},
+                {{ rectangle|lookup:3 }});
+                context.stroke();
+            {% endfor %}
+
+            {% for sol in maze.solution_data %}
+                context.save();
+                context.translate({{ sol|lookup:0 }}, {{ sol|lookup:1 }});
+                context.rotate({{ sol|lookup:2 }}*(Math.PI/180));
+                {% for line in maze.arrow %}
+                    context.moveTo ({{ line|lookup:0 }}, {{ line|lookup:1 }});
+                    context.lineTo ({{ line|lookup:2 }}, {{ line|lookup:3 }});
+                {% endfor %}
+                context.restore();
+                context.stroke();
+            {% endfor %}
+        </script>
+    </body>
+</html>

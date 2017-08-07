@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+{% load templatetags %}
+
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        {% if mode == 0 %}
+            <title>Edit board</title>
+        {% else %}
+            <title>Add board</title>
+        {% endif %}
+    </head>
+    <body>
+        <form action="#" method="POST">
+            {% csrf_token %}
+            Size (number of fields) min=1:<br>
+            <input type="number" min="1" step="1" name="size" {% if mode == 0 %} value="{{ board.size }}" {% endif %}> <br>
+            Description (nonempty):<br>
+            <input type="text" name="description" {% if mode == 0 %} value="{{ description }}" {% endif %}> <br>
+            {% if mode == 0 %}
+                    <button type="submit">Edit</button>
+            {% else %}
+                    <button type="submit">Add</button>
+            {% endif %}
+            <br><br><br>
+        </form>
+        {% if mode == 0 %}
+            {% for key in board.transfers %}
+                {{ forloop.counter }}.
+                From {{ key }}
+                To: {{ board.graph|lookup:key|lookup:0 }}
+                <a href = "/mode1/edit_add_transfer/{{ id }}/{{ forloop.counter0 }}/0">Edit</a>
+                <a href = "/mode1/delete_transfer/{{ id }}/{{ forloop.counter0 }}">Delete</a><br>
+            {% endfor %}
+            <br><br><br>
+             <a href = "/mode1/view_board/{{ id }}/?backurl=/mode1/edit_add_board/{{ id }}/{{ mode }}">View Board</a><br>
+            <a href ="/mode1/edit_add_transfer/{{ id }}/0/1">Add transfer</a><br> <!-- second argument is not used -->
+
+        {% endif %}
+        <a href = "/mode1/main"><- Go back</a>
+    </body>
+</html>

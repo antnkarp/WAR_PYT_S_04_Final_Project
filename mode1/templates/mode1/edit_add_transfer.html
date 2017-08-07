@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+{% load templatetags %}
+
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        {% if mode == 0 %}
+            <title>Edit transfer</title>
+        {% else %}
+            <title>Add transfer</title>
+        {% endif %}
+    </head>
+    <body>
+            <form action="#" method="POST">
+                {% csrf_token %}
+                {% if mode == 0 %}
+                    {% with transfers|lookup:t_id as from %}
+                        From:<br>
+                        <input type="number" min="0" step="1" name="new_from" value="{{ from }}"><br>
+                        To:<br>
+                        <input type="number" min="0" step="1" name="new_to" value="{{ board|lookup:from|lookup:0 }}"><br>
+                        <button type="submit">Edit transfer</button>
+                    {% endwith %}
+                {% else %}
+                        From:<br>
+                        <input type="number" min="0" step="1" name="new_from"><br>
+                        To:<br>
+                        <input type="number" min="0" step="1" name="new_to"><br>
+                        <button type="submit">Add transfer</button>
+                {% endif %}
+            </form>
+        <br> <br>
+        <a href="/mode1/edit_add_board/{{ id }}/0"> <- Back</a>
+    </body>
+</html>
