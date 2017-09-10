@@ -13,21 +13,28 @@
         <script>
             var graph = {{ graph.graph }};
             var graph_copy = graph;
-            var euler_path = {{ graph.euler_path }};
             var lines = {{ graph.lines }};
+            var flow_lines = {{graph.flow_lines}};
             var circles = {{ graph.circles }};
+            var radius_small = {{ graph.radius_small }};
+            var ANGLE = {{ graph.ANGLE }};
+            var url = "{% url 'mode4FindMaximumFlow' id=id %}"
         </script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.js"></script>
-        <script src="{% static 'mode2/app.js' %}"> </script>
+        <script src="{% static 'mode4/app.js' %}"> </script>
     </head>
     <body>
-
-
-        <a href = "/mode2/find_euler_path/{{ id }}" id="show_euler_path">Find Euler path</a><br>
+        <a href="#" id="linkFindMaximumFlow">Find maximum flow</a><br>
+        <form action="#" id="formFindMaximumFlow" method="POST">
+            {% csrf_token %}
+            From field (source) (0 - start):<br>
+            <input type="number" min="0" step="1" name="vertex_from"><br>
+            To field (sink):<br>
+            <input type="number" min="0" step="1" name="vertex_to"><br>
+            <button type="submit">Find maximum flow</button><br><br>
+        </form>
         <a href = "#" id="restoreCanvas">Restore</a><br><br>
         <canvas id="show_graph" draggable="true" width="500" height = "500"></canvas>
-
-        <div id="eulerPathDescr"> </div>
 
         <form action="#" method="POST">
             {% csrf_token %}
@@ -45,26 +52,28 @@
         No self-loops allowed.<br><br><br>
         {% if mode == 0 %}
             {% for in_vertex in graph.graph|sort %}
-                Vertex {{ in_vertex }}. <a href="/mode2/delete_vertex/{{ id }}/{{ in_vertex }}">Delete vertex</a>
-                <a href="/mode2/edit_add_edge/{{ id }}/{{ in_vertex }}/1/1 ">Add edge</a><br> <!-- second to last argument: 1: add new edge from this vertex -->
+                Vertex {{ in_vertex }}. <a href="/mode4/delete_vertex/{{ id }}/{{ in_vertex }}">Delete vertex</a>
+                <a href="/mode4/edit_add_edge/{{ id }}/{{ in_vertex }}/1/1 ">Add edge</a><br> <!-- second to last argument: 1: add new edge from this vertex -->
                 {% if graph.graph|lookup:in_vertex == empty_list %}
                     No edges.<br><br>
                 {% else %}
                     <ul>
                         {% for out_vertex in graph.graph|lookup:in_vertex %}
-                            <li> Edge nr {{ forloop.counter }}. From {{ in_vertex }} To {{ out_vertex }}
-                                <a href = "/mode2/edit_add_edge/{{ id }}/{{ in_vertex }}/{{ out_vertex }}/0">Edit</a>
-                                <a href = "/mode2/delete_edge/{{ id }}/{{ in_vertex }}/{{ out_vertex }}">Delete</a><br>
-                            </li>
+                            {% with key=in_vertex|add_str:","|add_str:out_vertex %}
+                                <li> Edge nr {{ forloop.counter }}. From {{ in_vertex }} To {{ out_vertex }} Capacity {{ graph.weights|tuple_lookup:key }}
+                                    <a href = "/mode4/edit_add_edge/{{ id }}/{{ in_vertex }}/{{ out_vertex }}/0">Edit</a>
+                                    <a href = "/mode4/delete_edge/{{ id }}/{{ in_vertex }}/{{ out_vertex }}">Delete</a><br>
+                                </li>
+                            {% endwith %}
                         {% endfor %}
                     </ul>
                     <br><br>
                 {% endif %}
             {% endfor %}
         {% endif %}
-        <a href ="/mode2/add_vertex/{{ id }}/0/1">Add vertex</a><br> <!-- second argument is not used -->
-        <a href ="/mode2/edit_add_edge/{{ id }}/0/0/1">Add edge</a><br><br> <!-- second to last argument: 0: add new edge -->
+        <a href ="/mode4/add_vertex/{{ id }}/0/1">Add vertex</a><br> <!-- second argument is not used -->
+        <a href ="/mode4/edit_add_edge/{{ id }}/0/0/1">Add edge</a><br><br> <!-- second to last argument: 0: add new edge -->
 
-        <a href = "/mode2/main"><- Go back</a>
+        <a href = "/mode4/main"><- Go back</a>
     </body>
 </html>

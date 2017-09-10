@@ -1,33 +1,36 @@
 <!DOCTYPE html>
+{% load static %}
 <html lang="en">
 {% load templatetags %}
     <head>
         <meta charset="UTF-8">
         <title>2D Maze</title>
+        <script>
+            var maze_solution_data = {{ maze_solution_data }};
+            var maze_rectangles = {{ maze_rectangles }};
+            var maze_arrow = {{ maze_arrow }};
+        </script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.js"></script>
+        <script src="{% static 'mode3/app.js' %}"> </script>
+        <style>
+            .wrapper {
+                position: relative;
+                width: 500px;
+                height: 500px;
+            }
+            .wrapper canvas {
+                position: absolute;
+                top: 0;
+                left: 0;
+            }
+
+        </style>
     </head>
     <body>
-        <canvas id="show_maze" width="1000" height="1000"></canvas>
-        <script>
-            var canvas = document.getElementById("show_maze");
-            var context = canvas.getContext("2d");
-            context.translate(0, 0); <!-- sharp edges -->
-            {% for rectangle in maze.rectangles %}
-                context.fillRect({{ rectangle|lookup:0 }}, {{ rectangle|lookup:1 }}, {{ rectangle|lookup:2 }},
-                {{ rectangle|lookup:3 }});
-                context.stroke();
-            {% endfor %}
-
-            {% for sol in maze.solution_data %}
-                context.save();
-                context.translate({{ sol|lookup:0 }}, {{ sol|lookup:1 }});
-                context.rotate({{ sol|lookup:2 }}*(Math.PI/180));
-                {% for line in maze.arrow %}
-                    context.moveTo ({{ line|lookup:0 }}, {{ line|lookup:1 }});
-                    context.lineTo ({{ line|lookup:2 }}, {{ line|lookup:3 }});
-                {% endfor %}
-                context.restore();
-                context.stroke();
-            {% endfor %}
-        </script>
+        <div class="wrapper">
+                <canvas id="show_maze" width="500" height="500"></canvas><br>
+                <canvas id="solution" width="500" height="500"></canvas><br>
+        </div>
+        <a href="#" id="showHideSolution">Show solution</a>
     </body>
 </html>

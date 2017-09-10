@@ -5,7 +5,7 @@ from mode2.models import NamedGraph
 from django.db import connection
 import _pickle
 import base64
-from modules.classes import UndirGraph
+from modules.classes import CanvasUndirGraph
 
 class Main(View):
     def get(self, request):
@@ -15,7 +15,7 @@ class Main(View):
 class SetDefault(View):
 
     def get(self, request):
-        graph1 = UndirGraph(6)
+        graph1 = CanvasUndirGraph(6, 500, 500)
         graph1.add_edge(0, 1)
         graph1.add_edge(0, 2)
         graph1.add_edge(1, 2)
@@ -26,9 +26,10 @@ class SetDefault(View):
         graph1.add_edge(3, 5)
         graph1.add_edge(4, 5)
         graph1.add_edge(2, 5)
+        graph1.draw_default()
         pickled_graph1 = base64.b64encode(_pickle.dumps(graph1))
 
-        graph2 = UndirGraph(6)
+        graph2 = CanvasUndirGraph(6, 500, 500)
         graph2.add_edge(0, 1)
         graph2.add_edge(0, 2)
         graph2.add_edge(1, 0)
@@ -37,6 +38,7 @@ class SetDefault(View):
         graph2.add_edge(3, 4)
         graph2.add_edge(3, 5)
         graph2.add_edge(4, 5)
+        graph2.draw_default()
         pickled_graph2 = base64.b64encode(_pickle.dumps(graph2))
 
         cursor = connection.cursor()
@@ -68,7 +70,7 @@ class EditAddGraph(View, ManageNamedGraph):
 
     def get(self, request, id, mode):
         if mode == "0":
-            return render(request, 'mode2/edit_add_graph.html', {"id": id, "graph": self.graph,\
+            return render(request, 'mode2/edit_add_graph.html', {"id": id, "graph": self.graph, \
                                                                  "description": self.description,  "mode": 0, "empty_list": []})
         else: #"1"
             return render(request, 'mode2/edit_add_graph.html', {"mode": 1})
@@ -86,8 +88,8 @@ class EditAddGraph(View, ManageNamedGraph):
             return render(request, 'project/success.html',\
                           {"message": "Edited graph.", "link": "/mode2/edit_add_graph/{}/0".format(id)})
         else: #create
-            self.graph = UndirGraph(size)
-            named_graph = NamedGraph.objects.create(description=self.description, pickled_graph=base64.b64encode(_pickle.dumps(self.board)))
+            self.graph = FlowNetwork(size)
+            named_graph = NamedGraph.objects.create(description=self.description, pickled_graph=base64.b64encode(_pickle.dumps(self.graph)))
             id = named_graph.id
             return render(request, 'project/success.html',\
                           {"message": "Created graph.", "link": "/mode2/edit_add_graph/{}/0".format(id)})
@@ -115,14 +117,26 @@ class EditAddEdge(View, ManageNamedGraph):
             from_v = int(from_v)
             to_v = int(to_v)
 
+
             error_code = self.graph.add_edge(new_from_v, new_to_v)
+            print('aaa', error_code);
+
             if error_code == -1:
                 return render(request, 'project/failure.html', {"message": "Vertices are not in graph!", \
                                                                 "link": "/mode2/edit_add_graph/{}/0".format(id)})
             elif error_code == -2:
                 return render(request, 'project/failure.html', {"message": "No self-loops allowed!", \
                                                                 "link": "/mode2/edit_add_graph/{}/0".format(id)})
-            self.graph.del_edge(from_v, to_v)
+            elif error_code == -3: #duplicate
+                if from_v != new_from_v or to_v != new_to_v:
+                    return render(request, 'project/failure.html', {"message": "No duplicates allowed!", \
+                                                                    "link": "/mode2/edit_add_graph/{}/0".format(id)})
+                else: #user didn't change anything
+                    return render(request, 'project/success.html', \
+                           {"message": "Nothing changed", "link": "/mode2/edit_add_graph/{}/0".format(id)})
+
+            else: #successful
+                self.graph.del_edge(from_v, to_v)
             self.save_named_graph(id)
             return render(request, 'project/success.html',\
                           {"message": "Edited edge", "link": "/mode2/edit_add_graph/{}/0".format(id)})

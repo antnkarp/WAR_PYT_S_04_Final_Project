@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Flow network</title>
+    </head>
+    <body>
+        {% for named_graph in named_graphs %}
+            Graph nr {{ forloop.counter }} <br>
+            {{ named_graph.description }} <br><br>
+            <a href="/mode4/edit_add_graph/{{ named_graph.id }}/0">View graph</a><br>
+            <a href="/mode4/delete_graph/{{ named_graph.id }}">Delete graph</a><br>
+            <br><br><br>
+        {% endfor %}
+        <a href="/mode4/edit_add_graph/0/1">Add graph</a><br> <!-- first argument is not used -->
+        <a href="/mode4/set_default">Reset graphs</a> (Erase and load default)<br>
+        <br><br>
+        <a href="/main"><- Go back</a>
+
+    </body>
+</html>

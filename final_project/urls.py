@@ -18,6 +18,10 @@ from django.contrib import admin
 import mode1.views as mode1
 import mode2.views as mode2
 import mode3.views as mode3
+import mode4.views as mode4
+
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
@@ -30,7 +34,7 @@ urlpatterns = [
     url(r'^mode1/view_board/(?P<id>(\d)+).{0,100}$', mode1.ViewBoard.as_view()),
     url(r'^mode1/delete_transfer/(?P<id>(\d)+)/(?P<t_id>(\d)+)$', mode1.DeleteTransfer.as_view()),
     url(r'^mode1/delete_board/(?P<id>(\d)+)$', mode1.DeleteBoard.as_view()),
-    url(r'^mode1/find_shortest_game/(?P<id>(\d)+)$', mode1.FindShortestGame.as_view()),
+    url(r'^mode1/find_shortest_game/(?P<id>(\d)+)$', mode1.FindShortestGame.as_view(), name='mode1FindShortestGame'),
     ############### MODE 2 ################
     url(r'^mode2/main$', mode2.Main.as_view()),
     url(r'^mode2/set_default$', mode2.SetDefault.as_view()),
@@ -43,5 +47,14 @@ urlpatterns = [
     url(r'^mode2/find_euler_path/(?P<id>(\d)+)$', mode2.FindEulerPath.as_view()),
     ############### MODE 3 ################
     url(r'^mode3/main$', mode3.Main.as_view()),
-
-]
+    ############### MODE 4 ################
+    url(r'^mode4/main$', mode4.Main.as_view()),
+    url(r'^mode4/set_default$', mode4.SetDefault.as_view()),
+    url(r'^mode4/edit_add_graph/(?P<id>(\d)+)/(?P<mode>(\d)+)$', mode4.EditAddGraph.as_view()),
+    url(r'^mode4/edit_add_edge/(?P<id>(\d)+)/(?P<from_v>(\d)+)/(?P<to_v>(\d)+)/(?P<mode>(\d)+)$', mode4.EditAddEdge.as_view()),
+    url(r'^mode4/delete_edge/(?P<id>(\d)+)/(?P<from_v>(\d)+)/(?P<to_v>(\d)+)$', mode4.DeleteEdge.as_view()),
+    url(r'^mode4/delete_vertex/(?P<id>(\d)+)/(?P<v_id>(\d)+)$', mode4.DeleteVertex.as_view()),
+    url(r'^mode4/add_vertex/(?P<id>(\d)+)', mode4.AddVertex.as_view()),
+    url(r'^mode4/delete_graph/(?P<id>(\d)+)$', mode4.DeleteGraph.as_view()),
+    url(r'^mode4/find_maximum_flow/(?P<id>(\d)+)$', mode4.FindMaximumFlow.as_view(), name='mode4FindMaximumFlow'),
+] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

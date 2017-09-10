@@ -1,41 +1,85 @@
 <!DOCTYPE html>
+{% load static %}
 <html lang="en">
 {% load templatetags %}
     <head>
         <meta charset="UTF-8">
         <title>Title</title>
-    </head>
-    <body>
-        <a href="{{ backurl }}"> <- Back</a><br><br>
-        <canvas id="show_board" width="500" height="500"></canvas>
+        <style>
+            .wrapper {
+                position: relative;
+                width: 500px;
+                height: 500px;
+            }
+            .wrapper canvas {
+                position: absolute;
+                top: 0;
+                left: 0;
+            }
+            .wrapper {
+                float: left;
+            }
+            .board {
+                margin-left: 20px;
+                float: left;
+
+            }
+            #clear {
+                clear: both;
+            }
+
+
+        </style>
         <script>
-            var canvas = document.getElementById("show_board");
-            var context = canvas.getContext("2d");
-
-            {% for rectangle in board.rectangles %}
-
-                context.fillStyle = "{{ rectangle|lookup:4 }}";
-                context.fillRect({{ rectangle|lookup:0 }}, {{ rectangle|lookup:1 }}, {{ rectangle|lookup:2 }},
-                {{ rectangle|lookup:3 }});
-
-            {% endfor %}
-
-            {% for line in board.lines %}
-                context.beginPath();
-                context.strokeStyle = "{{ line|lookup:4 }}";
-                context.moveTo ({{ line|lookup:0 }}, {{ line|lookup:1 }});
-                context.lineTo ({{ line|lookup:2 }}, {{ line|lookup:3 }});
-                context.stroke();
-            {% endfor %}
+             var rectangles = {{ board.rectangles|safe }};
+             var lines = {{ board.lines|safe }};
+             var circle_radius = {{ board.circle_radius }};
+             var circle_border = {{ board.circle_border }};
+             var circle_color = "{{ board.circle_color }}";
+             var url = "{% url 'mode1FindShortestGame' id=id %}";
+        </script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.js">
 
         </script>
-        Transfers: (starting vertices):<br>
-        {{ board.transfers }} <br><br>
-        Adjacency lists (by vertex): <br>
-        {% for key, value in board.graph.items %}
-            {{ key }} {{ value }} <br>
-        {% endfor %}
+        <script src="{% static 'mode1/app.js' %}">
+
+        </script>
+
+    </head>
+    <body>
+        <a href="{{ backurl }}"> <- Back</a><br>
+        <a href="#" id="linkShowShortestGame">Show shortest game</a><br>
+        <form action="#" id="formShowShortestGame" method="POST">
+            {% csrf_token %}
+            From field (0 - start):<br>
+            <input type="number" min="0" step="1" name="vertex_from"><br>
+            To field:<br>
+            <input type="number" min="0" step="1" name="vertex_to"><br>
+            <button type="submit">Show shortest game</button><br><br>
+        </form>
+
+        <div id="outer_wrapper">
+            <div class="wrapper">
+                <canvas id="show_board" width="500" height="500"></canvas><br>
+                <canvas id="solution" width="500" height="500"></canvas><br>
+            </div>
+            <div id="shortestGameDescr" class="board"></div>
+        </div>
+        <div id="clear"></div>
+
+        <a href="#" id="editBoard">Edit board</a><br>
+        <a href="#" id="linkGraphStructure">Show graph structure</a><br>
+
+        <div id="divGraphStructure">
+            Transfers: (starting vertices):<br>
+            {{ board.transfers }} <br><br>
+            Adjacency lists (by vertex): <br>
+            {% for key, value in board.graph.items %}
+                {{ key }} {{ value }} <br>
+            {% endfor %}
+        </div>
         <br> <br>
         <a href="{{ backurl }}"> <- Back</a>
+
     </body>
 </html>

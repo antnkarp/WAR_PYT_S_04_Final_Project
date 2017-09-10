@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        {% if mode == 0 %}
+            <title>Edit edge</title>
+        {% else %}
+            <title>Add edge</title>
+        {% endif %}
+    </head>
+    <body>
+        <form action="#" method="POST">
+            {% csrf_token %}
+            From <br>
+            <input type="number" min="0" step="1" name="new_from_v"
+                   {% if mode == 0 or mode == 1 and to_v == 1 %} value="{{ from_v }}" {% endif %}> <br>
+            To:<br>
+            <input type="number" name="new_to_v"
+                   {% if mode == 0 %} value="{{ to_v }}" {% endif %}> <br>
+
+            Capacity:<br>
+            <input type="number" name="new_capacity"
+                   {% if mode == 0 %} value="{{ capacity }}" {% endif %}> <br>
+
+            {% if mode == 0 %}
+                    <button type="submit">Edit</button>
+            {% else %}
+                    <button type="submit">Add</button>
+            {% endif %}
+            <br><br><br>
+        </form>
+    </body>
+</html>

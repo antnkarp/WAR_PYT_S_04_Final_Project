@@ -4,11 +4,12 @@ from mode1.models import NamedGraph
 from django.db import connection
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
+from rest_framework.response import Response
+from django.http import HttpResponse
 import _pickle
+import json
 import base64
-from modules.classes import CanvasBoard, ManageNamedGraph
-
-
+from modules.classes import CanvasBoard, ManageNamedGraph, CANVAS_HEIGHT, CANVAS_WIDTH
 
 
 
@@ -93,12 +94,16 @@ class EditAddBoard(View, ManageNamedGraph):
                           {"message": "Invalid input", "link": "/mode1/edit_add_board/{}/0".format(id)})
         if mode == "0":
             self.graph.normalize(size)
+            self.graph.board_to_rectangles()
+            self.graph.draw_transfers()
             self.save_named_graph(id)
             return render(request, 'project/success.html',\
                           {"message": "Edited board.", "link": "/mode1/edit_add_board/{}/0".format(id)})
         else: #create
-            self.graph = CanvasBoard(size)
-            named_graph = NamedGraph.objects.create(description=self.description, pickled_graph=base64.b64encode(_pickle.dumps(self.board)))
+            self.graph = CanvasBoard(size, CANVAS_WIDTH, CANVAS_HEIGHT)
+            self.graph.board_to_rectangles()
+            self.graph.draw_transfers()
+            named_graph = NamedGraph.objects.create(description=self.description, pickled_graph=base64.b64encode(_pickle.dumps(self.graph)))
             id = named_graph.id
             return render(request, 'project/success.html',\
                           {"message": "Created board.", "link": "/mode1/main".format(id)})
@@ -134,7 +139,7 @@ class EditAddTransfer(View, ManageNamedGraph):
             elif error_code == -2:
                 return render(request, 'project/failure.html', {"message": \
                         "Cannot edit transfer, it produces cycle!", "link": "/mode1/edit_add_board/{}/0".format(id)})
-
+            self.graph.draw_transfers()
             self.save_named_graph(id)
             return render(request, 'project/success.html',\
                           {"message": "Edited transfer", "link": "/mode1/edit_add_board/{}/0".format(id)})
@@ -146,6 +151,7 @@ class EditAddTransfer(View, ManageNamedGraph):
             elif error_code == -2:
                 return render(request, 'project/failure.html', {"message": \
                         "Cannot add transfer, it produces cycle!", "link": "/mode1/edit_add_board/{}/0".format(id)})
+            self.graph.draw_transfers()
             self.save_named_graph(id)
             return render(request, 'project/success.html', \
                           {"message": "Added transfer", "link": "/mode1/edit_add_board/{}/0".format(id)})
@@ -164,6 +170,7 @@ class DeleteTransfer(View, ManageNamedGraph):
         vertex_from = self.graph.transfers[int(t_id)]
         vertex_to = self.graph.graph[vertex_from][0]
         self.graph.del_edge(vertex_from, vertex_to)
+        self.graph.draw_transfers()
         self.save_named_graph(id)
         return render(request, 'project/success.html', {"message": "Deleted transfer.", "link": "/mode1/edit_add_board/{}/0".format(id)})
 
@@ -183,40 +190,27 @@ class FindShortestGame(View, ManageNamedGraph):
         self.load_named_graph(int(kwargs["id"]))
         return View.dispatch(self, *args, **kwargs)
 
-    def get(self, request, id):
-        return render(request, 'mode1/find_shortest_game.html', {'id': id})
 
     def post(self, request, id):
         try:
             vertex_from = int(request.POST["vertex_from"])
             vertex_to = int(request.POST["vertex_to"])
-        except KeyError:
-            return render(request, 'project/failure.html', {"message": "Invalid input", "link": "/mode1/edit_add_board/{}/0".format(id)})
-        path = self.graph.find_shortest_game(vertex_from, vertex_to)
-        if path == -1:
-            return render(request, 'project/failure.html',
-                          {"message": "Vertices are not in graph!", "link": "/mode1/edit_add_board/{}/0".format(id)})
-        message = []
-        current_vertex = vertex_from
-        moves = 0
-        if path == []:
-            message.append("You're already at the destination!")
-        elif path == [-1]:
-            message.append("Destination cannot be reached")
+        except ValueError:
+            return HttpResponse(json.dumps({'error': 1, 'message': 'Invalid input'}), content_type="application/json")
+        return_code = self.graph.produce_shortest_game(vertex_from, vertex_to)
+
+        if return_code == -1:
+            return HttpResponse(json.dumps({'error': 1, 'message': 'Vertices are not in graph!'}), content_type="application/json")
+
+        elif return_code == -2:
+            return HttpResponse(json.dumps({'error': 1, 'message': "You're already at the destination!'"}),
+                                content_type="application/json")
+        elif return_code == -3:
+            return HttpResponse(json.dumps({'error': 1, 'message': "Destination cannot be reached!'"}),
+                                content_type="application/json")
         else:
-            for index in path:
-                if index == -1: #transfer
-                    destination = self.graph.graph[current_vertex][0]
-                    if destination > current_vertex: #ladder
-                        message.append("Ladder from {} to {}".format(current_vertex, destination))
-                    else: #snake
-                        message.append("Snake from {} to {}".format(current_vertex, destination))
-                else: #dice roll
-                    moves += 1
-                    destination = self.graph.graph[current_vertex][index]
-                    message.append("Roll nr {}. Dice is {}. Go from {} to {} \n".format(moves, index+1, current_vertex, destination))
-                current_vertex = destination
-            message.append("Destination reached! This is the shortest game (by number of rolls).")
-        return render (request, 'mode1/view_shortest_game.html'.format(id), {"message": message, "id":id})
+            return HttpResponse(json.dumps({'error': 0, 's_g_descr': self.graph.s_g_descr, \
+                    's_g_vertex': self.graph.s_g_vertex,\
+                    's_g_moves_pixels': self.graph.s_g_moves_pixels}), content_type="application/json")
 
 
